@@ -1,7 +1,7 @@
 # EsPReSSO
 [![Build Status](https://travis-ci.org/RUB-NDS/BurpSSOExtension.svg?branch=master)](https://travis-ci.org/RUB-NDS/BurpSSOExtension)
 ![licence](https://img.shields.io/badge/License-GPLv2-brightgreen.svg)
-[![release](https://img.shields.io/badge/Release-v3.1-blue.svg)](https://github.com/RUB-NDS/BurpSSOExtension/releases)
+[![release](https://img.shields.io/badge/Release-v3.3.1-blue.svg)](https://github.com/RUB-NDS/BurpSSOExtension/releases)
 ![status](https://img.shields.io/badge/Status-beta-yellow.svg)
 
 ## Extension for Processing and Recognition of Single Sign-On Protocols
@@ -25,6 +25,7 @@ Supported Protocols:
 ### Attacking
 - [x] WS-Attacker integration while intercepting SAML messages
 - [x] DTD-Attacker integration while intercepting SAML messages
+- [x] XML-Encryption-Attacker integration while intercepting SAML messages
 
 ### Beautifier
 - [x] Syntax Highlight
@@ -52,7 +53,7 @@ $ mvn clean package
 
 ## Dependencies and Licences
 
- Dependencie     | Licence                         | Access Date | Link                                                              | Copyright (c) Date, Name                                             |
+ Dependency       | Licence                         | Access Date | Link                                                              | Copyright (c) Date, Name                                             |
 |-----------------|---------------------------------|-------------|-------------------------------------------------------------------|----------------------------------------------------------------------|
 | RSyntaxTextArea | modified BSD license            | 20.09.2015  | https://github.com/bobbylight/RSyntaxTextArea                     | 2012, Robert Futrell                                                 |
 | json-simple     | Apache License 2.0              | 20.09.2015  | https://code.google.com/p/json-simple/                            | Unkown, Yidong Fang                                                  |
@@ -63,7 +64,7 @@ $ mvn clean package
 
 ## Tested with:
 - Java 1.8.0._151
-- Burp Suite 1.7.32
+- Burp Suite 1.7.36
 - Ubuntu 16.04.3 LTS, amd64
 - Netbeans 8.2
 - Maven 3.3.9

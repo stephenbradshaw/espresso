@@ -16,35 +16,38 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package de.rub.nds.burp.utilities.listeners;
-
-import java.util.EventObject;
+package de.rub.nds.burp.utilities.table.xsw;
 
 /**
- * Abstract Code Event
- * @author Tim Guenther
- * @version 1.0
+ * A table entry for the class Table.
+ * 
+ * @author Nurullah Erinola
  */
-public abstract class AbstractCodeEvent extends EventObject{
-
-    private byte[] code;
-
-    /**
-     * Template to create a new CodeEvent.
-     * @param source The origin of the event.
-     * @param code The data (source code) to submit.
-     */
-    public AbstractCodeEvent(Object source, byte[] code) {
-        super(source);
-        this.code = code;
-    }
+public class TableEntry {
+    
+    private String xPath;
+    private String currentValue;
+    private String newValue;
 
     /**
-     * Get the Source Code.
-     * @return The source code.
+     * Construct a new table entry.
      */
-    public byte[] getCode(){
-        return code;
+    public TableEntry(String xPath, String currentValue, String newValue) {
+        this.xPath = xPath;
+        this.currentValue = currentValue;
+        this.newValue = newValue;
     }
-
+  
+    public String getXPath() {
+        return xPath;
+    }
+    
+    public String getCurrentValue() {
+        return currentValue;
+    }
+    
+    public String getNewValue() {
+        return newValue;
+    }
+    
 }

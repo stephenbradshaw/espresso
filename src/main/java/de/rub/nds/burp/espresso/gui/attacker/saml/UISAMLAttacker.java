@@ -18,6 +18,7 @@
  */
 package de.rub.nds.burp.espresso.gui.attacker.saml;
 
+import burp.IBurpExtenderCallbacks;
 import de.rub.nds.burp.utilities.listeners.CodeListenerController;
 import java.awt.CardLayout;
 import java.awt.Font;
@@ -35,6 +36,7 @@ import javax.swing.JPanel;
  * @version 1.0
  */
 public class UISAMLAttacker extends JPanel implements ItemListener{
+    private IBurpExtenderCallbacks extenderCallbacks;
 
     // The attack options.
     private final String NO_ATTACK = "No Attack";
@@ -42,20 +44,23 @@ public class UISAMLAttacker extends JPanel implements ItemListener{
     private final String SIGNATURE_EXCLUSION = "Signature Exclusion";
     private final String SIGNATURE_FAKING = "Signature Faking";
     private final String DTD = "DTD";
+    private final String ENCRYPTION = "Encryption";
 
     private JComboBox attackComboBox;
     private JLabel descriptionLabel;
     private JPanel settingsContainer;
     
-    private UISigWrapAttack uiSigWrapAttack = null;
     private UISigFakeAttack uiSigFakeAttack = null;
     private UISigExcAttack uiSigExcAttack = null;
     private UIDTDAttack uiDTDAttack = null;
+    private UIEncryptionAttack uiEncryptionAttack = null;
+    private UISigWrapAttack uiSigWrapAttack = null;
     
     /**
      * Create a new Attacker.
      */
-    public UISAMLAttacker(){
+    public UISAMLAttacker(IBurpExtenderCallbacks callbacks) {
+        this.extenderCallbacks = callbacks;
         initComponents();
     }
     
@@ -77,7 +82,7 @@ public class UISAMLAttacker extends JPanel implements ItemListener{
 
         attackComboBox = new JComboBox();
         attackComboBox.setFont(new Font("Dialog", 0, 12));
-        String[] attackArray = {NO_ATTACK, SIGNATURE_EXCLUSION, SIGNATURE_FAKING, SIGNATURE_WRAPPING, DTD};
+        String[] attackArray = {NO_ATTACK, SIGNATURE_EXCLUSION, SIGNATURE_FAKING, SIGNATURE_WRAPPING, DTD, ENCRYPTION};
         attackComboBox.setModel(new DefaultComboBoxModel(attackArray));
         attackComboBox.addItemListener(this);
 
@@ -91,6 +96,8 @@ public class UISAMLAttacker extends JPanel implements ItemListener{
 	settingsContainer.add(uiSigWrapAttack, SIGNATURE_WRAPPING);
         uiDTDAttack = new UIDTDAttack();
 	settingsContainer.add(uiDTDAttack, DTD);
+        uiEncryptionAttack = new UIEncryptionAttack(extenderCallbacks);
+        settingsContainer.add(uiEncryptionAttack, ENCRYPTION);
               
         GroupLayout layout = new GroupLayout(this);
         this.setLayout(layout);
@@ -99,9 +106,9 @@ public class UISAMLAttacker extends JPanel implements ItemListener{
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(attackComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(descriptionLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 376, Short.MAX_VALUE)
-                    .addComponent(settingsContainer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(attackComboBox, 10, 100, Short.MAX_VALUE)
+                    .addComponent(descriptionLabel, 10, 376, Short.MAX_VALUE)
+                    .addComponent(settingsContainer, 10, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -111,10 +118,10 @@ public class UISAMLAttacker extends JPanel implements ItemListener{
                 .addComponent(descriptionLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(attackComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(settingsContainer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(10, 10, 10)
+                .addComponent(settingsContainer, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-    }
+}
     
     /**
      * Set enable or disable this component.
@@ -140,8 +147,9 @@ public class UISAMLAttacker extends JPanel implements ItemListener{
     public void setListeners(CodeListenerController listeners){
         uiSigExcAttack.setListener(listeners);
         uiSigFakeAttack.setListener(listeners);
-        uiSigWrapAttack.setListener(listeners);
+        uiSigWrapAttack.setListeners(listeners);
         uiDTDAttack.setListener(listeners);
+        uiEncryptionAttack.setListener(listeners);
     }
     
     /**

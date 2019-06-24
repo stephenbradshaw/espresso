@@ -1,0 +1,731 @@
+/**
+ * EsPReSSO - Extension for Processing and Recognition of Single Sign-On Protocols.
+ * Copyright (C) 2015 Tim Guenther and Christian Mainka
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+package de.rub.nds.burp.espresso.gui.attacker.saml;
+
+import burp.IBurpExtenderCallbacks;
+import de.rub.nds.burp.espresso.gui.attacker.IAttack;
+import de.rub.nds.burp.utilities.ByteArrayHelper;
+import de.rub.nds.burp.utilities.Logging;
+import de.rub.nds.burp.utilities.XMLHelper;
+import de.rub.nds.burp.utilities.listeners.AbstractCodeEvent;
+import de.rub.nds.burp.utilities.listeners.CodeListenerController;
+import de.rub.nds.burp.utilities.listeners.events.SamlCodeEvent;
+import de.rub.nds.burp.utilities.protocols.xmlenc.AsymmetricAlgorithm;
+import de.rub.nds.burp.utilities.protocols.xmlenc.SymmetricAlgorithm;
+import de.rub.nds.burp.utilities.protocols.xmlenc.XmlEncryptionHelper;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import wsattacker.library.xmlutilities.namespace.NamespaceConstants;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.xml.xpath.XPathExpressionException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.util.HashMap;
+import java.util.List;
+
+/**
+ * The Encryption Attack
+ *
+ * @author Nurullah Erinola
+ * @author Juraj Somorovsky
+ * @version 1.0
+ */
+public class UIEncryptionAttack extends javax.swing.JPanel implements IAttack {
+
+    private IBurpExtenderCallbacks extenderCallbacks;
+    private String saml = "";
+    private String encryptTooltip = "";
+    private String encryptKeyTooltip = "";
+    private CodeListenerController listeners = null;
+    private XmlEncryptionHelper xmlEncryptionHelper;
+    private boolean encSymKeyButtonEnabled = false;
+    private boolean encXmlButtonEnabled = false;
+
+    private final String XPATH_ENC_DATA_CERT = "//xenc:EncryptedData/ds:KeyInfo/ds:X509Data/ds:X509Certificate";
+    private final String XPATH_ENC_KEY_CERT = "//xenc:EncryptedKey/ds:KeyInfo/ds:X509Data/ds:X509Certificate";
+    private final String XPATH_ENC_KEY_VAL = "//xenc:EncryptedKey/xenc:CipherData/xenc:CipherValue";
+    private final String XPATH_ENC_KEY_ALG = "//xenc:EncryptedKey/xenc:EncryptionMethod/@Algorithm";
+    private final String XPATH_ENC_DATA_VAL = "//xenc:EncryptedData/xenc:CipherData/xenc:CipherValue";
+    private final String XPATH_ENC_DATA_ALG = "//xenc:EncryptedData/xenc:EncryptionMethod/@Algorithm";
+
+    private HashMap<String, String> nameSpaceMap = new HashMap<>();
+
+    private final String encryptedAssertionTemplate = "<saml:EncryptedAssertion xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\">\n" +
+            "<xenc:EncryptedData xmlns:xenc=\"http://www.w3.org/2001/04/xmlenc#\" xmlns:dsig=\"http://www.w3.org/2000/09/xmldsig#\" Type=\"http://www.w3.org/2001/04/xmlenc#Element\">" +
+            "<xenc:EncryptionMethod Algorithm=\"http://www.w3.org/2001/04/xmlenc#aes128-cbc\"/><dsig:KeyInfo xmlns:dsig=\"http://www.w3.org/2000/09/xmldsig#\">" +
+            "<xenc:EncryptedKey><xenc:EncryptionMethod Algorithm=\"http://www.w3.org/2001/04/xmlenc#rsa-1_5\"/><xenc:CipherData>" +
+            "<xenc:CipherValue></xenc:CipherValue></xenc:CipherData></xenc:EncryptedKey></dsig:KeyInfo><xenc:CipherData>" +
+            "<xenc:CipherValue></xenc:CipherValue></xenc:CipherData></xenc:EncryptedData></saml:EncryptedAssertion>";
+
+    /**
+     * Creates new form UIEncryptionAttack
+     */
+    public UIEncryptionAttack(IBurpExtenderCallbacks callbacks) {
+        xmlEncryptionHelper = new XmlEncryptionHelper();
+        initComponents();
+        initEditorsAndListener();
+        this.extenderCallbacks = callbacks;
+
+        nameSpaceMap.put("ds", NamespaceConstants.URI_NS_DS);
+        nameSpaceMap.put("xenc", "http://www.w3.org/2001/04/xmlenc#");
+    }
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        sysPubButtonGroup = new javax.swing.ButtonGroup();
+        jLayeredPane2 = new javax.swing.JLayeredPane();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        jLabelWarningKeySize = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        jTextAreaCertificate = new javax.swing.JTextArea();
+        jCheckBoxUpdateCertEncData = new javax.swing.JCheckBox();
+        jCheckBoxUpdateCertEncKey = new javax.swing.JCheckBox();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextAreaSymmetricKey = new javax.swing.JTextArea();
+        jLayeredPane3 = new javax.swing.JLayeredPane();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        jLabelWarningBlockSize = new javax.swing.JLabel();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        jTextAreaXmlData = new javax.swing.JTextArea();
+        jScrollPane6 = new javax.swing.JScrollPane();
+        jTextAreaXmlHex = new javax.swing.JTextArea();
+        jButtonEncryptXML = new javax.swing.JButton();
+        jComboBoxSymmetricAlgo = new javax.swing.JComboBox<>();
+        jLabel10 = new javax.swing.JLabel();
+        jSeparator1 = new javax.swing.JSeparator();
+        jButtonEncryptSymmetricKey = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
+        jComboBoxPublicAlgo = new javax.swing.JComboBox<>();
+
+        jLabel1.setText("Public key encryption:");
+
+        jLabel4.setText("Symmetric key (in hexadecimal):");
+        jLabel4.setToolTipText("Will be encrypted with the server public key.");
+
+        jLabelWarningKeySize.setForeground(new java.awt.Color(255, 0, 51));
+        jLabelWarningKeySize.setText("Need x byte for encryption!");
+
+        jLabel3.setText("Certificate:");
+
+        jTextAreaCertificate.setColumns(20);
+        jTextAreaCertificate.setRows(3);
+        jTextAreaCertificate.setText("-----BEGIN CERTIFICATE-----\n\n-----END CERTIFICATE-----");
+        jScrollPane3.setViewportView(jTextAreaCertificate);
+
+        jCheckBoxUpdateCertEncData.setText("Update certificate in EncryptedData");
+
+        jCheckBoxUpdateCertEncKey.setText("Update certificate in EncryptedKey");
+
+        jTextAreaSymmetricKey.setColumns(20);
+        jTextAreaSymmetricKey.setLineWrap(true);
+        jTextAreaSymmetricKey.setRows(3);
+        jTextAreaSymmetricKey.setText("01 02 03 04 05 06 07 08 01 02 03 04 05 06 07 08");
+        jScrollPane1.setViewportView(jTextAreaSymmetricKey);
+
+        jLayeredPane2.setLayer(jLabel1, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        jLayeredPane2.setLayer(jLabel4, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        jLayeredPane2.setLayer(jLabelWarningKeySize, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        jLayeredPane2.setLayer(jLabel3, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        jLayeredPane2.setLayer(jScrollPane3, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        jLayeredPane2.setLayer(jCheckBoxUpdateCertEncData, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        jLayeredPane2.setLayer(jCheckBoxUpdateCertEncKey, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        jLayeredPane2.setLayer(jScrollPane1, javax.swing.JLayeredPane.DEFAULT_LAYER);
+
+        javax.swing.GroupLayout jLayeredPane2Layout = new javax.swing.GroupLayout(jLayeredPane2);
+        jLayeredPane2.setLayout(jLayeredPane2Layout);
+        jLayeredPane2Layout.setHorizontalGroup(
+            jLayeredPane2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jLayeredPane2Layout.createSequentialGroup()
+                .addGroup(jLayeredPane2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 419, Short.MAX_VALUE)
+                    .addGroup(jLayeredPane2Layout.createSequentialGroup()
+                        .addComponent(jLabel3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jLayeredPane2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jCheckBoxUpdateCertEncKey)
+                            .addComponent(jCheckBoxUpdateCertEncData))))
+                .addGroup(jLayeredPane2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jLayeredPane2Layout.createSequentialGroup()
+                        .addGap(7, 7, 7)
+                        .addGroup(jLayeredPane2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel4)
+                            .addComponent(jLabelWarningKeySize, javax.swing.GroupLayout.PREFERRED_SIZE, 335, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(jLayeredPane2Layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 430, Short.MAX_VALUE))))
+            .addGroup(jLayeredPane2Layout.createSequentialGroup()
+                .addComponent(jLabel1)
+                .addGap(193, 193, 193))
+        );
+        jLayeredPane2Layout.setVerticalGroup(
+            jLayeredPane2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jLayeredPane2Layout.createSequentialGroup()
+                .addComponent(jLabel1)
+                .addGroup(jLayeredPane2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3)
+                    .addComponent(jCheckBoxUpdateCertEncData)
+                    .addComponent(jLabel4))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jLayeredPane2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jCheckBoxUpdateCertEncKey)
+                    .addComponent(jLabelWarningKeySize))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jLayeredPane2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 67, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        jLabel6.setText("Symmetric key encryption:");
+
+        jLabel7.setText("XML data:");
+
+        jLabelWarningBlockSize.setForeground(new java.awt.Color(255, 0, 51));
+        jLabelWarningBlockSize.setText("Blocksize");
+
+        jTextAreaXmlData.setColumns(20);
+        jTextAreaXmlData.setLineWrap(true);
+        jTextAreaXmlData.setText("<saml:Assertion xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\" Version=\"2.0\" ID=\"_009df3b376b737bdb3fd890f6740543e9ca17c4e71\" IssueInstant=\"2018-03-04T12:46:12Z\">\n</saml:Assertion>");
+        jScrollPane4.setViewportView(jTextAreaXmlData);
+
+        jTextAreaXmlHex.setColumns(20);
+        jTextAreaXmlHex.setLineWrap(true);
+        jScrollPane6.setViewportView(jTextAreaXmlHex);
+
+        jLayeredPane3.setLayer(jLabel6, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        jLayeredPane3.setLayer(jLabel7, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        jLayeredPane3.setLayer(jLabelWarningBlockSize, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        jLayeredPane3.setLayer(jScrollPane4, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        jLayeredPane3.setLayer(jScrollPane6, javax.swing.JLayeredPane.DEFAULT_LAYER);
+
+        javax.swing.GroupLayout jLayeredPane3Layout = new javax.swing.GroupLayout(jLayeredPane3);
+        jLayeredPane3.setLayout(jLayeredPane3Layout);
+        jLayeredPane3Layout.setHorizontalGroup(
+            jLayeredPane3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jLayeredPane3Layout.createSequentialGroup()
+                .addComponent(jScrollPane4)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane6))
+            .addGroup(jLayeredPane3Layout.createSequentialGroup()
+                .addGroup(jLayeredPane3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel6)
+                    .addGroup(jLayeredPane3Layout.createSequentialGroup()
+                        .addComponent(jLabel7)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabelWarningBlockSize)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jLayeredPane3Layout.setVerticalGroup(
+            jLayeredPane3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jLayeredPane3Layout.createSequentialGroup()
+                .addComponent(jLabel6)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jLayeredPane3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel7)
+                    .addComponent(jLabelWarningBlockSize))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jLayeredPane3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane6)
+                    .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 472, Short.MAX_VALUE))
+                .addGap(0, 0, 0))
+        );
+
+        jButtonEncryptXML.setText("Encrypt content");
+        jButtonEncryptXML.setToolTipText("Encrypt and update SAML message automatically.");
+        jButtonEncryptXML.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonEncryptXMLActionPerformed(evt);
+            }
+        });
+
+        jComboBoxSymmetricAlgo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jComboBoxSymmetricAlgo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBoxSymmetricAlgoActionPerformed(evt);
+            }
+        });
+
+        jLabel10.setText("Algorithm:");
+
+        jButtonEncryptSymmetricKey.setText("Encrypt key");
+        jButtonEncryptSymmetricKey.setToolTipText("Encrypt and update SAML message automatically.");
+        jButtonEncryptSymmetricKey.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonEncryptSymmetricKeyActionPerformed(evt);
+            }
+        });
+
+        jLabel2.setText("Algorithm:");
+
+        jComboBoxPublicAlgo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLayeredPane2)
+                    .addComponent(jLayeredPane3, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jButtonEncryptXML)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel10)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jComboBoxSymmetricAlgo, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jSeparator1)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jButtonEncryptSymmetricKey)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jComboBoxPublicAlgo, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLayeredPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButtonEncryptSymmetricKey)
+                    .addComponent(jLabel2)
+                    .addComponent(jComboBoxPublicAlgo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLayeredPane3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButtonEncryptXML)
+                    .addComponent(jLabel10)
+                    .addComponent(jComboBoxSymmetricAlgo, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
+        );
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void jButtonEncryptSymmetricKeyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEncryptSymmetricKeyActionPerformed
+        Logging.getInstance().log(getClass(), "Start encryption of symmetric key.", Logging.INFO);
+        String certificate = jTextAreaCertificate.getText().trim();
+        byte[] symmetricKey = ByteArrayHelper.hexStringToByteArray(jTextAreaSymmetricKey.getText());
+        xmlEncryptionHelper.setSymmetricKey(symmetricKey);
+        String algorithmURI = jComboBoxPublicAlgo.getItemAt(jComboBoxPublicAlgo.getSelectedIndex());
+        AsymmetricAlgorithm algorithm = AsymmetricAlgorithm.getByURI(algorithmURI);
+        String encryptedKey = "";
+        try {
+            encryptedKey = xmlEncryptionHelper.encryptKey(certificate, algorithm);
+        } catch (InvalidKeyException | NoSuchAlgorithmException | CertificateException | BadPaddingException
+                | IllegalBlockSizeException | NoSuchPaddingException ex) {
+            Logging.getInstance().log(getClass(), ex);
+            extenderCallbacks.issueAlert(ex.toString());
+            return;
+        }
+        try {
+            Document doc = XMLHelper.stringToDom(saml);
+            // Set key
+            XMLHelper.getElementsByXPath(doc, XPATH_ENC_KEY_VAL, nameSpaceMap).get(0).setTextContent(encryptedKey);
+            // Set encryption algorithm, use PKCS#1 if plain RSA has been selected
+            algorithmURI = (algorithm == AsymmetricAlgorithm.RSA) ? AsymmetricAlgorithm.RSA_PKCS1_15.getUri() : algorithmURI;
+            XMLHelper.getElementsByXPath(doc, XPATH_ENC_KEY_ALG, nameSpaceMap).get(0).setTextContent(algorithmURI);
+            // Set certificate
+            setCertificateIfNeeded(doc);
+            // Update saml message
+            saml = XMLHelper.docToString(doc);         
+            notifyAllTabs(new SamlCodeEvent(this, saml.getBytes()));
+            Logging.getInstance().log(getClass(), "Setting new encrypted symmetric key was successfull.", Logging.INFO);
+        } catch (XPathExpressionException ex) {
+            Logging.getInstance().log(getClass(), ex);
+        }
+    }//GEN-LAST:event_jButtonEncryptSymmetricKeyActionPerformed
+
+    private void setCertificateIfNeeded(Document doc) {
+        if (!jCheckBoxUpdateCertEncData.isSelected() && !jCheckBoxUpdateCertEncKey.isSelected()) {
+            return;
+        }
+        try {
+            String cert = jTextAreaCertificate.getText();
+            cert = cert.replaceAll("-----BEGIN CERTIFICATE-----\n?", "")
+                    .replaceAll("\n?-----END CERTIFICATE-----", "")
+                    .trim();
+
+            boolean encDataEmpty = XMLHelper.getElementsByXPath(doc, XPATH_ENC_DATA_CERT, nameSpaceMap).isEmpty();
+            boolean encKeyEmpty = XMLHelper.getElementsByXPath(doc, XPATH_ENC_KEY_CERT, nameSpaceMap).isEmpty();
+            // Replace or update
+            if (jCheckBoxUpdateCertEncData.isSelected()) {
+                if (!encDataEmpty) {
+                    XMLHelper.getElementsByXPath(doc, XPATH_ENC_DATA_CERT, nameSpaceMap).get(0).setTextContent(cert);
+                } else {
+                    createCertNode(doc, "//xenc:EncryptedData", cert);
+                }
+            }
+            if (jCheckBoxUpdateCertEncKey.isSelected()) {
+                if (!encKeyEmpty) {
+                    XMLHelper.getElementsByXPath(doc, XPATH_ENC_KEY_CERT, nameSpaceMap).get(0).setTextContent(cert);
+                } else {
+                    createCertNode(doc, "//xenc:EncryptedKey", cert);
+                }
+            }
+        } catch (XPathExpressionException ex) {
+            Logging.getInstance().log(getClass(), ex);
+        }
+    }
+
+    private void createCertNode(Document doc, String nodePath, String cert) {
+        try {
+            Node element = XMLHelper.getElementsByXPath(doc, nodePath, nameSpaceMap).get(0);
+            Node keyInfoElement;
+            Node dataElement = doc.createElementNS(NamespaceConstants.URI_NS_DS, "ds:X509Data");
+            Node certElement = doc.createElement("ds:X509Certificate");
+            // Check if <ds:KeyInfo> is present 
+            if(!XMLHelper.getElementsByXPath(doc, nodePath + "/ds:KeyInfo", nameSpaceMap).isEmpty()) {
+                keyInfoElement = XMLHelper.getElementsByXPath(doc, nodePath + "/ds:KeyInfo", nameSpaceMap).get(0);
+            } else {
+                keyInfoElement = doc.createElementNS(NamespaceConstants.URI_NS_DS, "ds:KeyInfo");
+                element.appendChild(keyInfoElement);
+            }            
+            keyInfoElement.appendChild(dataElement);
+            dataElement.appendChild(certElement);
+            certElement.setTextContent(cert);
+        } catch (XPathExpressionException ex) {
+            Logging.getInstance().log(getClass(), ex);
+        }
+    }    
+
+    private void jButtonEncryptXMLActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEncryptXMLActionPerformed
+        Logging.getInstance().log(getClass(), "Start ciphertext computation.", Logging.INFO);
+        byte[] symmetricKey = ByteArrayHelper.hexStringToByteArray(jTextAreaSymmetricKey.getText());
+        xmlEncryptionHelper.setSymmetricKey(symmetricKey);
+        String algorithmURI = jComboBoxSymmetricAlgo.getItemAt(jComboBoxSymmetricAlgo.getSelectedIndex());
+        SymmetricAlgorithm algorithm = SymmetricAlgorithm.getByURI(algorithmURI);
+        String hexXml = jTextAreaXmlHex.getText();
+        byte[] data = ByteArrayHelper.hexStringToByteArray(hexXml);
+        String result = "";
+        try {
+            result = xmlEncryptionHelper.encryptData(data, algorithm);
+        } catch (InvalidKeyException | NoSuchAlgorithmException | BadPaddingException
+                | IllegalBlockSizeException | InvalidAlgorithmParameterException | NoSuchPaddingException ex) {
+            Logging.getInstance().log(getClass(), ex);
+            extenderCallbacks.issueAlert(ex.toString());
+            return;
+        }
+        // Set ciphertext 
+        try {
+            Document doc = XMLHelper.stringToDom(saml);
+            XMLHelper.getElementsByXPath(doc, XPATH_ENC_DATA_VAL, nameSpaceMap).get(0).setTextContent(result);
+            XMLHelper.getElementsByXPath(doc, XPATH_ENC_DATA_ALG, nameSpaceMap).get(0).setTextContent(algorithmURI);
+
+            saml = XMLHelper.docToString(doc);      
+            notifyAllTabs(new SamlCodeEvent(this, saml.getBytes()));
+            Logging.getInstance().log(getClass(), "Setting new ciphertext was successfull.", Logging.INFO);
+        } catch (XPathExpressionException ex) {
+            Logging.getInstance().log(getClass(), ex);
+        }
+    }//GEN-LAST:event_jButtonEncryptXMLActionPerformed
+
+    private void jComboBoxSymmetricAlgoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxSymmetricAlgoActionPerformed
+        checkKeyLengthAndFormat();
+        checkBlocksize();
+        updateHexData();
+    }//GEN-LAST:event_jComboBoxSymmetricAlgoActionPerformed
+
+    /**
+     * Is called every time new Code is available.
+     *
+     * @param evt {@link de.rub.nds.burp.utilities.listeners.AbstractCodeEvent}
+     * The new source code.
+     */
+    @Override
+    public void setCode(AbstractCodeEvent evt) {
+        setSaml(evt.getCode());
+        if (evt.getSource().equals(this)) {
+            // do not override certificate if code event was self-issued by encryption attacker
+            return;
+        }
+        jButtonEncryptXML.setEnabled(encXmlButtonEnabled);
+        // Set certificate if available
+        try {
+            Document doc = XMLHelper.stringToDom(saml);
+            List<? extends Node> certs = XMLHelper.getElementsByXPath(doc, XPATH_ENC_KEY_CERT + "|" + XPATH_ENC_DATA_CERT, nameSpaceMap);
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("-----BEGIN CERTIFICATE-----\n");
+            if(!certs.isEmpty()) {
+                sb.append(certs.get(0).getTextContent().trim());
+            }
+            sb.append("\n-----END CERTIFICATE-----");
+            jTextAreaCertificate.setText(sb.toString());
+        } catch (XPathExpressionException ex) {
+            Logging.getInstance().log(getClass(), ex);
+        }
+    }
+
+    private void setSaml(byte[] code) {
+        Document doc = XMLHelper.stringToDom(new String(code));
+        NodeList assertions = doc.getElementsByTagNameNS(NamespaceConstants.URI_NS_SAML20, "Assertion");
+        NodeList encryptedAssertions = doc.getElementsByTagNameNS(NamespaceConstants.URI_NS_SAML20, "EncryptedAssertion");
+
+        // check if saml response contains an unencrypted assertion
+        if (assertions.getLength() == 1) {
+            Node assertion = assertions.item(0);
+            // set assertion in xml data
+            String assertionStriong = XMLHelper.nodeToString(assertion);
+            jTextAreaXmlData.setText(assertionStriong);
+
+            // remove plain assertion from saml response and add EncryptedAssertion template
+            Node encAssertion = XMLHelper.stringToDom(encryptedAssertionTemplate).getDocumentElement();
+            Node newEncAssertion = doc.importNode(encAssertion, true);
+            assertion.getParentNode().appendChild(newEncAssertion);
+            assertion.getParentNode().removeChild(assertion);
+
+        } else if (encryptedAssertions.getLength() != 1) {
+            if (encryptTooltip.isEmpty()) {
+                // store original tooltip text
+                encryptTooltip = jButtonEncryptXML.getToolTipText();
+                encryptKeyTooltip = jButtonEncryptSymmetricKey.getToolTipText();
+            }
+            String message = "SAML Response must contain exactly one assertion.";
+            extenderCallbacks.issueAlert(message);
+            encXmlButtonEnabled = false;
+            jButtonEncryptXML.setToolTipText(message);
+            encSymKeyButtonEnabled = false;
+            jButtonEncryptSymmetricKey.setToolTipText(message);
+            return;
+        }
+
+        this.saml = XMLHelper.docToString(doc);
+        encXmlButtonEnabled = true;
+        encSymKeyButtonEnabled = true;
+        if (!encryptTooltip.isEmpty()) {
+            jButtonEncryptXML.setToolTipText(encryptTooltip);
+            jButtonEncryptSymmetricKey.setToolTipText(encryptKeyTooltip);
+        }
+    }
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButtonEncryptSymmetricKey;
+    private javax.swing.JButton jButtonEncryptXML;
+    private javax.swing.JCheckBox jCheckBoxUpdateCertEncData;
+    private javax.swing.JCheckBox jCheckBoxUpdateCertEncKey;
+    private javax.swing.JComboBox<String> jComboBoxPublicAlgo;
+    private javax.swing.JComboBox<String> jComboBoxSymmetricAlgo;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabelWarningBlockSize;
+    private javax.swing.JLabel jLabelWarningKeySize;
+    private javax.swing.JLayeredPane jLayeredPane2;
+    private javax.swing.JLayeredPane jLayeredPane3;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JScrollPane jScrollPane6;
+    private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JTextArea jTextAreaCertificate;
+    private javax.swing.JTextArea jTextAreaSymmetricKey;
+    private javax.swing.JTextArea jTextAreaXmlData;
+    private javax.swing.JTextArea jTextAreaXmlHex;
+    private javax.swing.ButtonGroup sysPubButtonGroup;
+    // End of variables declaration//GEN-END:variables
+
+    private void initEditorsAndListener() {
+        // Init jComboBoxes
+        jComboBoxPublicAlgo.setModel(new DefaultComboBoxModel(AsymmetricAlgorithm.getURIs()));
+        jComboBoxPublicAlgo.setSelectedIndex(0);
+        jComboBoxSymmetricAlgo.setModel(new DefaultComboBoxModel(SymmetricAlgorithm.getURIs()));
+        jComboBoxSymmetricAlgo.setSelectedIndex(0);
+        // Set listeners for jTextares
+        jTextAreaXmlData.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                updateHexData();
+            }
+
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                updateHexData();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent arg0) {
+                updateHexData();
+            }
+        });
+        jTextAreaSymmetricKey.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                checkKeyLengthAndFormat();
+            }
+
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                checkKeyLengthAndFormat();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent arg0) {
+                checkKeyLengthAndFormat();
+            }
+        });
+        jTextAreaXmlHex.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                checkBlocksize();
+            }
+
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                checkBlocksize();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent arg0) {
+                checkBlocksize();
+            }
+        });
+        jTextAreaCertificate.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                checkCertificate();
+            }
+
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                checkCertificate();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent arg0) {
+                checkCertificate();
+            }
+        });
+        // Update jLabels and jTextareas
+        checkKeyLengthAndFormat();
+        checkBlocksize();
+        updateHexData();
+        checkCertificate();
+    }
+
+    private void checkCertificate() {
+        String certificate = jTextAreaCertificate.getText().trim();
+        boolean btnEnabled;
+        try {
+            if(XmlEncryptionHelper.getPublicKey(certificate) != null) {
+                btnEnabled = true;
+            } else {
+                btnEnabled = false;
+            }
+        } catch (CertificateException ex) {
+            btnEnabled = false;
+        }
+        boolean flag = btnEnabled & encSymKeyButtonEnabled; // dont enable button if SAML contains multiple assertions
+        SwingUtilities.invokeLater(() -> jButtonEncryptSymmetricKey.setEnabled(flag));
+    }
+    
+    private void checkKeyLengthAndFormat() {
+        AsymmetricAlgorithm as = AsymmetricAlgorithm.getByURI(jComboBoxPublicAlgo.getItemAt(jComboBoxPublicAlgo.getSelectedIndex()));
+        if ("RSA/None/NoPadding".equals(as.getJavaName())) {
+            // skip checks when using textbook RSA
+            jLabelWarningKeySize.setText("");
+            return;
+        }
+
+        SymmetricAlgorithm sa = SymmetricAlgorithm.getByURI(jComboBoxSymmetricAlgo.getItemAt(jComboBoxSymmetricAlgo.getSelectedIndex()));
+        int requiredSize = sa.getKeyLength();
+        String key = jTextAreaSymmetricKey.getText().replaceAll("\\s", "");
+        int size = requiredSize - key.length()*4; 
+        if (size != 0 && !key.matches("[0-9A-Fa-f]+")) {
+            jLabelWarningKeySize.setText("Need " + requiredSize/8 + " byte for encryption and in hexadecimal!");
+        } else if(size != 0) {
+            jLabelWarningKeySize.setText("Need " + requiredSize/8 + " byte for encryption!");
+        } else if(!key.matches("[0-9A-Fa-f]+")) {
+            jLabelWarningKeySize.setText("Need key in hexadecimal!");
+        } else {
+            jLabelWarningKeySize.setText("");
+        }
+    }
+
+    private void checkBlocksize() {
+        SymmetricAlgorithm algorithm = SymmetricAlgorithm.getByURI(jComboBoxSymmetricAlgo.getItemAt(jComboBoxSymmetricAlgo.getSelectedIndex()));
+        int blocksize = algorithm.getBlockSize();
+        int length = jTextAreaXmlHex.getText().replaceAll("\\s", "").length();
+        if(!algorithm.isUsingGCMMode() && length % blocksize != 0) {
+                jLabelWarningBlockSize.setText("Input length not multiple of "+ blocksize +" bytes!");
+        } else {
+                jLabelWarningBlockSize.setText("");
+        }
+    }
+
+    private void updateHexData() {
+        String algorithmURI = jComboBoxSymmetricAlgo.getItemAt(jComboBoxSymmetricAlgo.getSelectedIndex());
+        SymmetricAlgorithm algorithm = SymmetricAlgorithm.getByURI(algorithmURI);
+        byte[] xml = jTextAreaXmlData.getText().getBytes();
+        byte[] padding = xmlEncryptionHelper.computePadding(xml, algorithm);
+        byte[] data = ByteArrayHelper.concatenate(xml, padding);
+        jTextAreaXmlHex.setText(ByteArrayHelper.bytesToHexString(data));        
+    }
+
+    /**
+     * Set the listener for the editor.
+     *
+     * @param listeners
+     * {@link de.rub.nds.burp.utilities.listeners.CodeListenerController}
+     */
+    @Override
+    public void setListener(CodeListenerController listeners) {
+        this.listeners = listeners;
+        this.listeners.addCodeListener(this);
+    }
+
+    /**
+     * Notify all registered listeners with the new code.
+     *
+     * @param evt The codeEvent.
+     */
+    @Override
+    public void notifyAllTabs(AbstractCodeEvent evt) {
+        if(listeners != null){
+            listeners.notifyAll(evt);
+        }
+    }
+}
