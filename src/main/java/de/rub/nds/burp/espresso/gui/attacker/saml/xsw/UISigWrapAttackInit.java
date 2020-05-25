@@ -105,7 +105,7 @@ public class UISigWrapAttackInit extends javax.swing.JPanel implements ICodeList
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jTextFieldNewValue = new javax.swing.JTextField();
-        jButtonAdd = new javax.swing.JButton();
+        jButtonAddString = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
         jScrollPaneTable = new javax.swing.JScrollPane();
         jSeparator3 = new javax.swing.JSeparator();
@@ -115,6 +115,8 @@ public class UISigWrapAttackInit extends javax.swing.JPanel implements ICodeList
         jTextFieldCurrentValue = new javax.swing.JTextField();
         jLabelNode = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
+        jButtonAddXpath = new javax.swing.JButton();
+        jLabel6 = new javax.swing.JLabel();
 
         jLabel1.setText("Message:");
 
@@ -144,14 +146,14 @@ public class UISigWrapAttackInit extends javax.swing.JPanel implements ICodeList
         jLabelVectors.setForeground(new java.awt.Color(255, 0, 0));
         jLabelVectors.setText("Minimum one textnode pair necessary!");
 
-        jLabel3.setText("Current value:");
+        jLabel3.setText("Search value:");
 
         jLabel4.setText("New value:");
 
-        jButtonAdd.setText("Add");
-        jButtonAdd.addActionListener(new java.awt.event.ActionListener() {
+        jButtonAddString.setText("Add Search String");
+        jButtonAddString.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonAddActionPerformed(evt);
+                jButtonAddStringActionPerformed(evt);
             }
         });
 
@@ -171,6 +173,16 @@ public class UISigWrapAttackInit extends javax.swing.JPanel implements ICodeList
         jLabel7.setText("Modifications Table:");
         jLabel7.setToolTipText("");
 
+        jButtonAddXpath.setText("Add xPath");
+        jButtonAddXpath.setName(""); // NOI18N
+        jButtonAddXpath.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonAddXpathActionPerformed(evt);
+            }
+        });
+
+        jLabel6.setText("...or....");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -179,16 +191,7 @@ public class UISigWrapAttackInit extends javax.swing.JPanel implements ICodeList
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(rTextScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jButtonAdd, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jSeparator3, javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel3)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextFieldCurrentValue)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel4)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextFieldNewValue))
                     .addComponent(jSeparator4)
                     .addComponent(jScrollPaneTable)
                     .addGroup(layout.createSequentialGroup()
@@ -203,11 +206,31 @@ public class UISigWrapAttackInit extends javax.swing.JPanel implements ICodeList
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabelVectors))
                             .addComponent(jButtonReload))
-                        .addGap(0, 171, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jCheckBoxWrapLines)))
+                        .addComponent(jCheckBoxWrapLines))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel3)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jTextFieldCurrentValue))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jButtonAddString, javax.swing.GroupLayout.PREFERRED_SIZE, 222, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel6)
+                                .addGap(0, 0, Short.MAX_VALUE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel4)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jTextFieldNewValue))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(jButtonAddXpath, javax.swing.GroupLayout.PREFERRED_SIZE, 198, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -235,7 +258,10 @@ public class UISigWrapAttackInit extends javax.swing.JPanel implements ICodeList
                         .addComponent(jTextFieldCurrentValue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(jTextFieldNewValue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButtonAdd)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButtonAddString)
+                    .addComponent(jButtonAddXpath)
+                    .addComponent(jLabel6))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel7)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -345,6 +371,7 @@ public class UISigWrapAttackInit extends javax.swing.JPanel implements ICodeList
             jLabelVectors.setText("No signatures available!");
             return;
         }
+
         // Repalce values
         for (int i = 0; i < payloadList.size(); i++) {
             Document payload = XMLHelper.stringToDom(payloadList.get(i).getValue());
@@ -354,11 +381,14 @@ public class UISigWrapAttackInit extends javax.swing.JPanel implements ICodeList
                     node.setTextContent(pair.getValue().toString());
                 } catch (XPathExpressionException ex) {
                     Logging.getInstance().log(getClass(), "Could not replace value.", Logging.ERROR);
+                } catch(Exception e) {
+                    Logging.getInstance().log(getClass(), e.toString(), Logging.ERROR);
                 }
             }
             payloadList.get(i).setPayloadElement(payload.getDocumentElement());
         }
         // Init oracle
+        
         wrappingOracle = new WrappingOracle(doc, payloadList, samlSchemaAnalyser);
         max = wrappingOracle.maxPossibilities();
         jLabelVectors.setText(max + " possible vectors!");
@@ -376,7 +406,8 @@ public class UISigWrapAttackInit extends javax.swing.JPanel implements ICodeList
         }
     }//GEN-LAST:event_jCheckBoxWrapLinesActionPerformed
 
-    private void jButtonAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddActionPerformed
+    private void jButtonAddStringActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddStringActionPerformed
+
         ArrayList<String> xPaths = new ArrayList<>();
         // Search only in signed elements
         for (int i = 0; i < payloadList.size(); i++) {
@@ -387,6 +418,7 @@ public class UISigWrapAttackInit extends javax.swing.JPanel implements ICodeList
             jLabelNode.setText(jTextFieldCurrentValue.getText() + " not found in the signed element!");
             return;
         }
+
         for (int i = 0; i < xPaths.size(); i++) {
             String selection = xPaths.get(i);
             // Add pair
@@ -398,7 +430,41 @@ public class UISigWrapAttackInit extends javax.swing.JPanel implements ICodeList
                 jLabelNode.setText("New value for '" + jTextFieldCurrentValue.getText() + "' already added. Delete existing entry to replace it!");
             } 
         }
-    }//GEN-LAST:event_jButtonAddActionPerformed
+
+    }//GEN-LAST:event_jButtonAddStringActionPerformed
+
+    private void jButtonAddXpathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddXpathActionPerformed
+        ArrayList<String> matched = new ArrayList<>();
+
+        for (int i = 0; i < payloadList.size(); i++) {
+            Document payload = DomUtilities.createNewDomFromNode(payloadList.get(i).getSignedElement());
+            try {
+                Node node = DomUtilities.evaluateXPath(payload, jTextFieldCurrentValue.getText()).get(0);
+                matched.add(node.getTextContent());
+            } catch (XPathExpressionException ex) {
+                Logging.getInstance().log(getClass(), "Could not match xPath.", Logging.ERROR);
+            } catch (java.lang.IndexOutOfBoundsException ex) {
+                // no match on xpath
+            } catch(Exception e) {
+                Logging.getInstance().log(getClass(), e.toString(), Logging.ERROR);
+            }
+
+        }
+
+        // get the working xpath things from above
+        // add to table and valuestore
+        if (matched.size() > 0) {
+            for (int i = 0; i < matched.size(); i++) {
+                valuePairs.put(jTextFieldCurrentValue.getText(), jTextFieldNewValue.getText());
+                tableModel.addRow(new TableEntry(jTextFieldCurrentValue.getText(), matched.get(i), jTextFieldNewValue.getText()));
+            }
+            jTextFieldCurrentValue.setText("");
+            jTextFieldNewValue.setText("");
+            jLabelNode.setText("xPath matched! Added to replacement table!");
+        } else {
+            jLabelNode.setText("xPath not matched");
+        }
+    }//GEN-LAST:event_jButtonAddXpathActionPerformed
     
     private void initSigManager() {
         SignatureManager sigManager = new SignatureManager();
@@ -449,7 +515,8 @@ public class UISigWrapAttackInit extends javax.swing.JPanel implements ICodeList
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButtonAdd;
+    private javax.swing.JButton jButtonAddString;
+    private javax.swing.JButton jButtonAddXpath;
     private javax.swing.JButton jButtonGenerateVectors;
     private javax.swing.JButton jButtonReload;
     private javax.swing.JCheckBox jCheckBoxWrapLines;
@@ -457,6 +524,7 @@ public class UISigWrapAttackInit extends javax.swing.JPanel implements ICodeList
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabelNode;
     private javax.swing.JLabel jLabelVectors;

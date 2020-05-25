@@ -18,6 +18,7 @@
  */
 package de.rub.nds.burp.espresso.intruder.xsw;
 
+import de.rub.nds.burp.utilities.Logging;
 import de.rub.nds.burp.utilities.XMLHelper;
 import de.rub.nds.burp.utilities.table.ssoHistory.TableMouseListener;
 import de.rub.nds.burp.utilities.table.xsw.TableEntry;
@@ -41,9 +42,12 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableRowSorter;
+import javax.xml.xpath.XPathExpressionException;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 import wsattacker.library.schemaanalyzer.SchemaAnalyzerFactory;
 import wsattacker.library.signatureWrapping.option.Payload;
+import wsattacker.library.xmlutilities.dom.DomUtilities;
 
 /**
  * @author Nurullah Erinola
@@ -96,7 +100,7 @@ public class XSWInputJDialog extends javax.swing.JDialog {
         jTextFieldCurrentValue = new javax.swing.JTextField();
         jTextFieldNewValue = new javax.swing.JTextField();
         jSeparator1 = new javax.swing.JSeparator();
-        jButtonAdd = new javax.swing.JButton();
+        jButtonAddString = new javax.swing.JButton();
         jLabel4 = new javax.swing.JLabel();
         jScrollPaneTable = new javax.swing.JScrollPane();
         jCheckBoxWrapLines = new javax.swing.JCheckBox();
@@ -112,6 +116,8 @@ public class XSWInputJDialog extends javax.swing.JDialog {
         jLabel6 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
         jComboBoxSchema = new javax.swing.JComboBox<>();
+        jButtonAddXpath = new javax.swing.JButton();
+        jLabel8 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -126,14 +132,15 @@ public class XSWInputJDialog extends javax.swing.JDialog {
 
         jLabel1.setText("Message:");
 
-        jLabel2.setText("Current value:");
+        jLabel2.setText("Search value:");
 
         jLabel3.setText("New value:");
 
-        jButtonAdd.setText("Add");
-        jButtonAdd.addActionListener(new java.awt.event.ActionListener() {
+        jButtonAddString.setText("Add Search String");
+        jButtonAddString.setToolTipText("");
+        jButtonAddString.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonAddActionPerformed(evt);
+                jButtonAddStringActionPerformed(evt);
             }
         });
 
@@ -173,6 +180,15 @@ public class XSWInputJDialog extends javax.swing.JDialog {
 
         jComboBoxSchema.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
+        jButtonAddXpath.setText("Add xPath");
+        jButtonAddXpath.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonAddXpathActionPerformed(evt);
+            }
+        });
+
+        jLabel8.setText("...or...");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -183,18 +199,21 @@ public class XSWInputJDialog extends javax.swing.JDialog {
                     .addComponent(rTextScrollPane, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jSeparator1)
                     .addComponent(jScrollPaneTable)
-                    .addComponent(jButtonAdd, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jSeparator2, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jButtonOk, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jSeparator3)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextFieldCurrentValue, javax.swing.GroupLayout.DEFAULT_SIZE, 209, Short.MAX_VALUE)
+                        .addComponent(jTextFieldCurrentValue, javax.swing.GroupLayout.DEFAULT_SIZE, 207, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextFieldNewValue, javax.swing.GroupLayout.DEFAULT_SIZE, 208, Short.MAX_VALUE))
+                        .addComponent(jTextFieldNewValue, javax.swing.GroupLayout.DEFAULT_SIZE, 207, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jCheckBoxWrapLines))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
@@ -216,9 +235,11 @@ public class XSWInputJDialog extends javax.swing.JDialog {
                                 .addComponent(jCheckBoxUrl)))
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
+                        .addComponent(jButtonAddString, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jLabel8)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jCheckBoxWrapLines)))
+                        .addComponent(jButtonAddXpath, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -243,7 +264,10 @@ public class XSWInputJDialog extends javax.swing.JDialog {
                     .addComponent(jLabel3)
                     .addComponent(jTextFieldNewValue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButtonAdd)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButtonAddString)
+                    .addComponent(jButtonAddXpath)
+                    .addComponent(jLabel8))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel6)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -270,7 +294,8 @@ public class XSWInputJDialog extends javax.swing.JDialog {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButtonAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddActionPerformed
+    private void jButtonAddStringActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddStringActionPerformed
+
         ArrayList<String> xPaths = new ArrayList<>();
         // Search only in signed elements
         for (int i = 0; i < payloadList.size(); i++) {
@@ -292,7 +317,10 @@ public class XSWInputJDialog extends javax.swing.JDialog {
                 jLabelNode.setText("New value for '" + jTextFieldCurrentValue.getText() + "' already added. Delete existing entry to replace it!");
             } 
         }
-    }//GEN-LAST:event_jButtonAddActionPerformed
+
+
+
+    }//GEN-LAST:event_jButtonAddStringActionPerformed
 
     private void jButtonOkActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOkActionPerformed
         this.dispose();
@@ -305,6 +333,39 @@ public class XSWInputJDialog extends javax.swing.JDialog {
             rSyntaxTextArea.setLineWrap(false);
         }
     }//GEN-LAST:event_jCheckBoxWrapLinesActionPerformed
+
+    private void jButtonAddXpathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddXpathActionPerformed
+        ArrayList<String> matched = new ArrayList<>();
+
+        for (int i = 0; i < payloadList.size(); i++) { 
+            Document payload = XMLHelper.stringToDom(payloadList.get(i).getValue());
+            try {
+                Node node = DomUtilities.evaluateXPath(payload, jTextFieldCurrentValue.getText()).get(0);
+                matched.add(node.getTextContent());
+            } catch (XPathExpressionException ex) {
+                Logging.getInstance().log(getClass(), "Could not match xPath.", Logging.ERROR);
+            } catch (java.lang.IndexOutOfBoundsException ex) {
+                // no match on xpath
+            } catch(Exception e) {
+                Logging.getInstance().log(getClass(), e.toString(), Logging.ERROR);
+            }
+
+        }
+
+        // get the working xpath things from above
+        // add to table and valuestore
+        if (matched.size() > 0) {
+            for (int i = 0; i < matched.size(); i++) {
+                valuePairs.put(jTextFieldCurrentValue.getText(), jTextFieldNewValue.getText());
+                tableModel.addRow(new TableEntry(jTextFieldCurrentValue.getText(), matched.get(i), jTextFieldNewValue.getText()));
+            }
+            jTextFieldCurrentValue.setText("");
+            jTextFieldNewValue.setText("");
+            jLabelNode.setText("xPath matched! Added to replacement table!");
+        } else {
+            jLabelNode.setText("xPath not matched");
+        }
+    }//GEN-LAST:event_jButtonAddXpathActionPerformed
 
     private void initTable() {
         tableModel = new TableModel();
@@ -424,7 +485,8 @@ public class XSWInputJDialog extends javax.swing.JDialog {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButtonAdd;
+    private javax.swing.JButton jButtonAddString;
+    private javax.swing.JButton jButtonAddXpath;
     private javax.swing.JButton jButtonOk;
     private javax.swing.JCheckBox jCheckBoxBase64;
     private javax.swing.JCheckBox jCheckBoxEnflate;
@@ -438,6 +500,7 @@ public class XSWInputJDialog extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabelNode;
     private javax.swing.JScrollPane jScrollPaneTable;
     private javax.swing.JSeparator jSeparator1;

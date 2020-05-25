@@ -10,3 +10,6 @@ release.properties
 *.swo
 *.swp
 target/
+.classpath
+.project
+.settings/

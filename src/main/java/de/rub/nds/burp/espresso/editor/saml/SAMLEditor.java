@@ -55,6 +55,7 @@ public class SAMLEditor implements IMessageEditorTabFactory{
 
     private final String samlRequest = "SAMLRequest";
     private final String samlResponse = "SAMLResponse";
+    private final String samlAssertion = "SAMLAssertion";
     private final String signature = "Signature";
     private final String signatureAlgorithm = "SigAlg";
 
@@ -195,6 +196,10 @@ public class SAMLEditor implements IMessageEditorTabFactory{
                 return true;
             }
             samlContent = helpers.getRequestParameter(content, samlResponse);
+            if (null != samlContent){
+                return true;
+            }
+            samlContent = helpers.getRequestParameter(content, samlAssertion);
             if (null != samlContent){
                 return true;
             }

@@ -81,7 +81,7 @@ public class UISigWrapExec extends javax.swing.JPanel implements IAttack {
             }
         });
 
-        jLabel2.setText("Choose attack vevtor:");
+        jLabel2.setText("Choose attack vector:");
 
         jSpinnerSelectedAttack.setEnabled(false);
         jSpinnerSelectedAttack.addChangeListener(new javax.swing.event.ChangeListener() {
